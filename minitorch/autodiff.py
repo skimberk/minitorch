@@ -1,3 +1,5 @@
+import queue
+
 from dataclasses import dataclass
 from typing import Any, Iterable, List, Tuple
 
@@ -22,8 +24,13 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
-    # TODO: Implement for Task 1.1.
-    raise NotImplementedError('Need to implement for Task 1.1')
+    vals_under = list(vals)
+    vals_under[arg] -= epsilon
+
+    vals_over = list(vals)
+    vals_over[arg] += epsilon
+    
+    return (f(*vals_over) - f(*vals_under)) / (2.0 * epsilon)
 
 
 variable_count = 1
@@ -61,8 +68,44 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+
+    in_degree = {variable.unique_id: 0}
+    variable_queue = queue.Queue()
+    variable_queue.put(variable)
+    visited = set()
+
+    while not variable_queue.empty():
+        v = variable_queue.get()
+        if v.unique_id in visited:
+            continue
+        visited.add(v.unique_id)
+
+        for p in v.parents:
+            if p.unique_id in in_degree:
+                in_degree[p.unique_id] += 1
+            else:
+                in_degree[p.unique_id] = 1
+
+            variable_queue.put(p)
+    
+    sorted_variables = []
+    variable_queue = queue.Queue()
+    variable_queue.put(variable)
+
+    while not variable_queue.empty():
+        v = variable_queue.get()
+        sorted_variables.append(v)
+        for p in v.parents:
+            if p.unique_id not in in_degree:
+                raise RuntimeError("p should be in in_degree!")
+            in_degree[p.unique_id] -= 1
+            if in_degree[p.unique_id] == 0:
+                variable_queue.put(p)
+            elif in_degree[p.unique_id] < 0:
+                raise RuntimeError("in_degree should never be less than zero!")
+            
+
+    return sorted_variables
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -76,8 +119,21 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    ordered = topological_sort(variable)
+    derivatives = {variable.unique_id: deriv}
+
+    for v in ordered:
+        d = derivatives[v.unique_id]
+        if v.is_leaf():
+            v.accumulate_derivative(d)
+        else:
+            out_vs_ds = v.chain_rule(d)
+            for target_v, out_d in out_vs_ds:
+                if target_v.unique_id in derivatives:
+                    derivatives[target_v.unique_id] += out_d
+                else:
+                    derivatives[target_v.unique_id] = out_d
+
 
 
 @dataclass
