@@ -60,9 +60,10 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     prod = 1
-    for i in range(len(shape)):
-        dim = shape[i]
-        out_index[i] = (ordinal // prod) % dim
+    shape_len = len(shape)
+    for i in range(shape_len):
+        dim = shape[shape_len - i - 1]
+        out_index[shape_len - i - 1] = (ordinal // prod) % dim
         prod *= dim
 
 
@@ -235,6 +236,12 @@ class TensorData:
         return TensorData(self._storage, new_shape, new_strides)
 
     def to_string(self) -> str:
+        # This function only seems to work if self.indices() returns its
+        # indices in the same order as they're being printed (i.e iterating
+        # from the last dimension to the first dimension
+        # TODO: Fix it so it works independent of what order indices are returned
+        # in? Either that, or make it more clear in instructions what order
+        # to_index should return indices in
         s = ""
         for index in self.indices():
             l = ""
