@@ -264,8 +264,23 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        for i in range(np.prod(out_shape)):
+            # Create a numpy array to store out index
+            out_index = np.array(out_shape)
+            # Get index from ordinal
+            to_index(i, out_shape, out_index)
+            # Convert index to position in storage (taking into account strides)
+            out_position = index_to_position(out_index, out_strides)
+
+            # Create a numpy array to store in index
+            in_index = np.array(in_shape)
+            # Get broadcast in  index from out index
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            # Convert index to position in storage (taking into account strides)
+            in_position = index_to_position(in_index, in_strides)
+
+            # Apply function
+            out[out_position] = fn(in_storage[in_position])
 
     return _map
 
@@ -309,8 +324,32 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        # This is pretty much the same as tensor_map except we have
+        # two ins: a and b
+        for i in range(np.prod(out_shape)):
+            # Create a numpy array to store out index
+            out_index = np.array(out_shape)
+            # Get index from ordinal
+            to_index(i, out_shape, out_index)
+            # Convert index to position in storage (taking into account strides)
+            out_position = index_to_position(out_index, out_strides)
+
+            # Create a numpy array to store a index
+            a_index = np.array(a_shape)
+            # Get broadcast a  index from out index
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            # Convert index to position in storage (taking into account strides)
+            a_position = index_to_position(a_index, a_strides)
+
+            # Create a numpy array to store b index
+            b_index = np.array(b_shape)
+            # Get broadcast b  index from out index
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            # Convert index to position in storage (taking into account strides)
+            b_position = index_to_position(b_index, b_strides)
+
+            # Apply function
+            out[out_position] = fn(a_storage[a_position], b_storage[b_position])
 
     return _zip
 
@@ -340,8 +379,23 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        # Similar to tensor_map, except we're reducing all the values with equal reduce_dim
+        for i in range(np.prod(a_shape)):
+            # Create a numpy array to store a index
+            a_index = np.array(out_shape)
+            # Get index from ordinal
+            to_index(i, a_shape, a_index)
+            # Convert index to position in storage (taking into account strides)
+            a_position = index_to_position(a_index, a_strides)
+
+            out_index = np.copy(a_index)
+            # Reduce the chosen dimension
+            out_index[reduce_dim] = 0
+            # Convert index to position in storage (taking into account strides)
+            out_position = index_to_position(out_index, out_strides)
+
+            # Apply function
+            out[out_position] = fn(a_storage[a_position], out[out_position])
 
     return _reduce
 
