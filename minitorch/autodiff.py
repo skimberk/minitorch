@@ -76,7 +76,8 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
 
     while not variable_queue.empty():
         v = variable_queue.get()
-        if v.unique_id in visited:
+        if v.unique_id in visited or v.is_constant():
+            # If v is a constant, it has no history/parents!
             continue
         visited.add(v.unique_id)
 
@@ -94,6 +95,10 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
 
     while not variable_queue.empty():
         v = variable_queue.get()
+        if v.is_constant():
+            # If v is a constant, it has no history/parents!
+            continue
+
         sorted_variables.append(v)
         for p in v.parents:
             if p.unique_id not in in_degree:

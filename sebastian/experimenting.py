@@ -13,13 +13,18 @@ for i in t515.indices():
     minitorch.broadcast_index(np.array(i), t515._shape, t551._shape, out_i)
     # print(i, out_i)
 
-permute = minitorch.Tensor(minitorch.TensorData([1, 2, 0], (3, 1)), backend= minitorch.SimpleBackend)
+permutation = minitorch.Tensor(minitorch.TensorData([1, 2, 0], (3, 1)), backend= minitorch.SimpleBackend)
 t_t234 = minitorch.Tensor(t234, backend= minitorch.SimpleBackend)
 
-print(t_t234.shape, t_t234)
+# print(t_t234.shape, t_t234)
 
-permuted = minitorch.Permute.apply(t_t234, permute)
+permuted = minitorch.Permute.apply(t_t234, permutation)
 
-print(permuted.shape, permuted)
+# print(permuted.shape, permuted)
+
+def permute(a: minitorch.Tensor) -> minitorch.Tensor:
+    return a.permute(2, 1, 0)
+
+minitorch.grad_check(permute, t_t234)
 
 # print(tensor_data.to_string())

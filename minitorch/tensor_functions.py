@@ -119,7 +119,7 @@ class Sigmoid(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         (t1,) = ctx.saved_values
         s = t1.f.sigmoid_map(t1)
-        return grad_output * s * (1.0 - s)
+        return grad_output * s * (s._ensure_tensor(1.0) - s)
 
 
 class ReLU(Function):
@@ -209,13 +209,13 @@ class IsClose(Function):
 class Permute(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, order: Tensor) -> Tensor:
-        order_processed = map(int, order._tensor._storage)
+        order_processed = list(map(int, order._tensor._storage))
         ctx.save_for_backward(order_processed)
         return minitorch.Tensor(a._tensor.permute(*order_processed), backend=a.backend)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
-        order_processed = ctx.saved_values
+        order_processed, = ctx.saved_values
         inverse_order = [-1] * len(order_processed)
 
         for i in range(len(order_processed)):
