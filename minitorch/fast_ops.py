@@ -414,9 +414,12 @@ def _tensor_matrix_multiply(
 
         val = 0
         for j in range(fuse_dim_size):
-            a_val = a_storage[a_position + j * a_fuse_stride]
-            b_val = b_storage[b_position + j * b_fuse_stride]
-            val += a_val * b_val
+            val += a_storage[a_position] * b_storage[b_position]
+            # Originally I'd been doing a_storage[a_position + j * a_fuse_stride]
+            # but that meant I was doing three multiplications in the inner loop
+            # hence this kindof janky (maybe faster?) solution
+            a_position += a_fuse_stride
+            b_position += b_fuse_stride
         
         out[out_position] = val
 
