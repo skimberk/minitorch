@@ -43,7 +43,9 @@ def index_to_position(index: Index, strides: Strides) -> int:
         Position in storage
     """
 
-    return np.dot(index, strides)
+    # I originally used np.dot, but I guess this requires np.linalg and that
+    # requires scipy when compiling with Numba, so I'm doing it in two steps
+    return np.sum(np.multiply(index, strides))
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -96,7 +98,6 @@ def broadcast_index(
         j_big = len(big_shape) - i - 1
         j_small = len(shape) - i - 1
 
-        x_big = big_shape[j_big]
         x_small = shape[j_small]
 
         if x_small == 1:

@@ -63,8 +63,9 @@ def sigmoid(x: float) -> float:
     for stability.
     """
     if x >= 0.0:
-        return 1.0 / (1.0 + exp(neg(x)))
-    return exp(x) / (1.0 + exp(x))
+        return 1.0 / (1.0 + math.exp(-x))
+    e_x = math.exp(x)
+    return e_x / (1.0 + e_x)
 
 def sigmoid_back(x: float, d: float) -> float:
     s = sigmoid(x)
@@ -95,17 +96,17 @@ def exp(x: float) -> float:
 
 def log_back(x: float, d: float) -> float:
     r"If $f = log$ as above, compute $d \times f'(x)$"
-    return d * inv(x)
+    return d * (1.0 / x)
 
 
 def inv(x: float) -> float:
     "$f(x) = 1/x$"
-    return 1.0/x
+    return 1.0 / x
 
 
 def inv_back(x: float, d: float) -> float:
     r"If $f(x) = 1/x$ compute $d \times f'(x)$"
-    return d * -1.0 * inv(pow(x, 2.0))
+    return d * -1.0 * (1.0 / pow(x, 2.0))
 
 
 def relu_back(x: float, d: float) -> float:

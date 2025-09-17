@@ -159,8 +159,32 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError('Need to implement for Task 3.1')
+        if np.array_equal(out_shape, in_shape) and np.array_equal(out_strides, in_strides):
+            # Both strides and shapes are equal, we don't need to worry about
+            # indexing or broadcasting!
+            for i in prange(np.prod(out_shape)):
+                # Apply function
+                out[i] = fn(in_storage[i])
+        else:
+            for i in prange(np.prod(out_shape)):
+                # Create a numpy array to store out index
+                # important that we initialize it as int64! defaults to float
+                out_index = np.empty(len(out_shape), dtype=np.int64)
+                # Get index from ordinal
+                to_index(i, out_shape, out_index)
+                # Convert index to position in storage (taking into account strides)
+                out_position = index_to_position(out_index, out_strides)
+
+                # Create a numpy array to store in index
+                # important that we initialize it as int64! defaults to float
+                in_index = np.empty(len(in_shape), dtype=np.int64)
+                # Get broadcast in  index from out index
+                broadcast_index(out_index, out_shape, in_shape, in_index)
+                # Convert index to position in storage (taking into account strides)
+                in_position = index_to_position(in_index, in_strides)
+
+                # Apply function
+                out[out_position] = fn(in_storage[in_position])
 
     return njit(parallel=True)(_map)  # type: ignore
 
@@ -198,8 +222,42 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError('Need to implement for Task 3.1')
+        if np.array_equal(out_shape, a_shape) and np.array_equal(out_shape, b_shape) and np.array_equal(out_strides, a_strides) and np.array_equal(out_strides, b_strides):
+            # Both strides and shapes are equal, we don't need to worry about
+            # indexing or broadcasting!
+            for i in prange(np.prod(out_shape)):
+                # Apply function
+                out[i] = fn(a_storage[i], b_storage[i])
+        else:
+            # This is pretty much the same as tensor_map except we have
+            # two ins: a and b
+            for i in prange(np.prod(out_shape)):
+                # Create a numpy array to store out index
+                # important that we initialize it as int64! defaults to float
+                out_index = np.empty(len(out_shape), dtype=np.int64)
+                # Get index from ordinal
+                to_index(i, out_shape, out_index)
+                # Convert index to position in storage (taking into account strides)
+                out_position = index_to_position(out_index, out_strides)
+
+                # Create a numpy array to store a index
+                # important that we initialize it as int64! defaults to float
+                a_index = np.empty(len(a_shape), dtype=np.int64)
+                # Get broadcast a  index from out index
+                broadcast_index(out_index, out_shape, a_shape, a_index)
+                # Convert index to position in storage (taking into account strides)
+                a_position = index_to_position(a_index, a_strides)
+
+                # Create a numpy array to store b index
+                # important that we initialize it as int64! defaults to float
+                b_index = np.empty(len(b_shape), dtype=np.int64)
+                # Get broadcast b  index from out index
+                broadcast_index(out_index, out_shape, b_shape, b_index)
+                # Convert index to position in storage (taking into account strides)
+                b_position = index_to_position(b_index, b_strides)
+
+                # Apply function
+                out[out_position] = fn(a_storage[a_position], b_storage[b_position])
 
     return njit(parallel=True)(_zip)  # type: ignore
 
@@ -232,8 +290,32 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError('Need to implement for Task 3.1')
+        # Modified from code in tensor_ops.py as that one wasn't parallelizing correctly
+        for i in prange(np.prod(out_shape)):
+            # Create a numpy array to store out index
+            # important that we initialize it as int64! defaults to float
+            out_index = np.empty(len(out_shape), dtype=np.int64)
+            # Get index from ordinal
+            to_index(i, out_shape, out_index)
+            # Convert index to position in storage (taking into account strides)
+            out_position = index_to_position(out_index, out_strides)
+
+            a_index = np.copy(out_index)
+            a_position = index_to_position(a_index, a_strides)
+            reduce_stride = a_strides[reduce_dim]
+            reduced_value = a_storage[a_position]
+            # Iterate through the dimension we're reducing
+            # Think of a three dimensional cube we're reducing along one of its
+            # dimensions
+            # We're essentially taking a 2d slice and reducing down, getting a
+            # reduced rectangle
+            # In this loop, for each index in the resulting rectangle, we iterate
+            # through that third, reduced dimension and do the reduction
+            for j in range(a_shape[reduce_dim] - 1):
+                a_position = a_position + reduce_stride
+                reduced_value = fn(a_storage[a_position], reduced_value)
+
+            out[out_position] = reduced_value
 
     return njit(parallel=True)(_reduce)  # type: ignore
 
