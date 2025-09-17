@@ -361,11 +361,64 @@ def _tensor_matrix_multiply(
     Returns:
         None : Fills in `out`
     """
+    # Not totally sure what these are for?
     a_batch_stride = a_strides[0] if a_shape[0] > 1 else 0
     b_batch_stride = b_strides[0] if b_shape[0] > 1 else 0
 
-    # TODO: Implement for Task 3.2.
-    raise NotImplementedError('Need to implement for Task 3.2')
+    # I *think* this should be similar to reduce? Wherein we can start with our
+    # index in the out matrix, then iterate through what we need to calculate it
+    # using strides to reduce calls
+
+    # According to comment that
+    # assert a_shape[-1] == b_shape[-2]
+    # it seems like we're "fusing" (my own made up terminology) the last dimension
+    # of "a" with the second to last dimension of "b"
+    # So let's say they have the following shapes:
+    # a: A*B*C*D
+    # b: A*B*D*E
+    # then
+    # a*b: A*B*C*E
+    # So we want all dimensions except for the last two to be broadcastable
+    # and the last dimension of "a" to be equal to the last dimension of "b"
+    # I'm visualizing the multiplication in >2 dimensions by visualizing a cube
+    # composed of a bunch of stacked matrices, and so we're really just doing a bunch
+    # of stacked matrix multiplications
+
+    assert a_shape[-1] == b_shape[-2]
+    fuse_dim_size = a_shape[-1]
+    a_fuse_stride = a_strides[-1]
+    b_fuse_stride = b_strides[-2]
+
+    for i in prange(np.prod(out_shape)):
+        # Create a numpy array to store out index
+        # important that we initialize it as int64, otherwise defaults to float
+        out_index = np.empty(len(out_shape), dtype=np.int64)
+        # Get index from ordinal
+        to_index(i, out_shape, out_index)
+        # Convert index to position in storage (taking into account strides)
+        out_position = index_to_position(out_index, out_strides)
+
+        a_index = np.empty(len(a_shape), dtype=np.int64)
+        # Broadcast
+        broadcast_index(out_index, out_shape, a_shape, a_index)
+        a_index[-1] = 0
+        # Convert index to position in storage (taking into account strides)
+        a_position = index_to_position(a_index, a_strides)
+
+        b_index = np.empty(len(b_shape), dtype=np.int64)
+        # Broadcast
+        broadcast_index(out_index, out_shape, b_shape, b_index)
+        b_index[-2] = 0
+        # Convert index to position in storage (taking into account strides)
+        b_position = index_to_position(b_index, b_strides)
+
+        val = 0
+        for j in range(fuse_dim_size):
+            a_val = a_storage[a_position + j * a_fuse_stride]
+            b_val = b_storage[b_position + j * b_fuse_stride]
+            val += a_val * b_val
+        
+        out[out_position] = val
 
 
 tensor_matrix_multiply = njit(parallel=True, fastmath=True)(_tensor_matrix_multiply)

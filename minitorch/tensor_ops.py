@@ -380,6 +380,7 @@ def tensor_reduce(
         reduce_dim: int,
     ) -> None:
         # Similar to tensor_map, except we're reducing all the values with equal reduce_dim
+        # After implementing the fast version, I'm not actually sure this is always correct?
         for i in range(np.prod(a_shape)):
             # Create a numpy array to store a index
             a_index = np.array(out_shape)
