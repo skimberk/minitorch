@@ -213,8 +213,24 @@ def tensor_zip(
         b_index = cuda.local.array(MAX_DIMS, numba.int32)
         i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
 
-        # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        if i < out_size:
+            # Get index from ordinal
+            to_index(i, out_shape, out_index)
+            # Convert index to position in storage (taking into account strides)
+            out_position = index_to_position(out_index, out_strides)
+
+            # Get broadcast a index from out index
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            # Convert index to position in storage (taking into account strides)
+            a_position = index_to_position(a_index, a_strides)
+
+            # Get broadcast b index from out index
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            # Convert index to position in storage (taking into account strides)
+            b_position = index_to_position(b_index, b_strides)
+
+            # Apply function
+            out[out_position] = fn(a_storage[a_position], b_storage[b_position])
 
     return cuda.jit()(_zip)  # type: ignore
 
