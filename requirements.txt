@@ -8,11 +8,16 @@ importlib-resources==6.4.0
 jaraco.text==3.12.1
 mypy==1.11.2
 numba==0.61.2
-numba-cuda==0.16.0
+numba-cuda==0.19.1
 cuda-core==0.3.2
 cuda-python==12.9.2
 cuda-bindings==12.9.2
 nvidia-cuda-nvcc-cu12==12.9.86
+nvidia-cuda-cccl-cu12==12.9.27
+nvidia-cuda-nvrtc-cu12==12.9.86
+nvidia-cuda-runtime-cu12==12.9.79
+nvidia-nvjitlink-cu12==12.9.86
+cuda-pathfinder==1.2.3
 plotly==5.24.0
 pre-commit==3.8.0
 pydot==3.0.1
