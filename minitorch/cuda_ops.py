@@ -291,7 +291,7 @@ def _sum_practice(out: Storage, a: Storage, size: int) -> None:
 
     if pos == 0:
         cache[pos] += cache[pos + 16]
-        out[cuda.blockIdx.x] = val
+        out[cuda.blockIdx.x] = cache[pos]
 
 
 jit_sum_practice = cuda.jit()(_sum_practice)
@@ -339,6 +339,9 @@ def tensor_reduce(
         out_index = cuda.local.array(MAX_DIMS, numba.int32)
         out_pos = cuda.blockIdx.x
         pos = cuda.threadIdx.x
+
+        out_reduce_stride = out_strides[reduce_dim]
+        a_reduce_stride = a_strides[reduce_dim]
 
         # Create a numpy array to store out index
         # important that we initialize it as int64! defaults to float
