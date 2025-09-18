@@ -5,6 +5,8 @@ from numba import cuda
 
 # From https://github.com/googlecolab/colabtools/issues/5081
 from numba import config
+# No longer necessary for numba-cuda>=0.16
+# config.CUDA_ENABLE_PYNVJITLINK = 1
 config.CUDA_LOW_OCCUPANCY_WARNINGS = 0
 
 from .tensor import Tensor
@@ -157,8 +159,20 @@ def tensor_map(
         out_index = cuda.local.array(MAX_DIMS, numba.int32)
         in_index = cuda.local.array(MAX_DIMS, numba.int32)
         i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
-        # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        
+        if i < out_size:
+            # Get index from ordinal
+            to_index(i, out_shape, out_index)
+            # Convert index to position in storage (taking into account strides)
+            out_position = index_to_position(out_index, out_strides)
+
+            # Get broadcast in  index from out index
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            # Convert index to position in storage (taking into account strides)
+            in_position = index_to_position(in_index, in_strides)
+
+            # Apply function
+            out[out_position] = fn(in_storage[in_position])
 
     return cuda.jit()(_map)  # type: ignore
 
