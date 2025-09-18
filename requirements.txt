@@ -8,6 +8,7 @@ importlib-resources==6.4.0
 jaraco.text==3.12.1
 mypy==1.11.2
 numba==0.61.2
+numba-cuda==0.4.0
 plotly==5.24.0
 pre-commit==3.8.0
 pydot==3.0.1
