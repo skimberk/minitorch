@@ -14,9 +14,9 @@ cuda-python==12.9.2
 cuda-bindings==12.9.2
 nvidia-cuda-nvcc-cu12==12.9.86
 nvidia-cuda-cccl-cu12==12.9.27
-# nvidia-cuda-nvrtc-cu12==12.9.86
-# nvidia-cuda-runtime-cu12==12.9.79
-# nvidia-nvjitlink-cu12==12.9.86
+nvidia-cuda-nvrtc-cu12==12.9.86
+nvidia-cuda-runtime-cu12==12.9.79
+nvidia-nvjitlink-cu12==12.9.86
 cuda-pathfinder==1.2.3
 plotly==5.24.0
 pre-commit==3.8.0
@@ -26,4 +26,4 @@ pytest-runner==6.0.1
 python-mnist==0.7
 streamlit-ace==0.1.1
 tomli==2.0.1
-torch==2.8.0
+# torch==2.8.0
