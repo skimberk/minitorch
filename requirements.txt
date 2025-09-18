@@ -26,4 +26,4 @@ pytest-runner==6.0.1
 python-mnist==0.7
 streamlit-ace==0.1.1
 tomli==2.0.1
-torch==2.7.1
+torch==2.8.0
