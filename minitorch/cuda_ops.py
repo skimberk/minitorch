@@ -3,6 +3,11 @@ from typing import Callable, Optional
 import numba
 from numba import cuda
 
+# From https://github.com/googlecolab/colabtools/issues/5081
+from numba import config
+config.CUDA_ENABLE_PYNVJITLINK = 1
+config.CUDA_LOW_OCCUPANCY_WARNINGS = 0
+
 from .tensor import Tensor
 from .tensor_data import (
     MAX_DIMS,
