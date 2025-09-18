@@ -9,8 +9,10 @@ jaraco.text==3.12.1
 mypy==1.11.2
 numba==0.61.2
 numba-cuda==0.16.0
-cuda-python==13.0.1
-cuda-bindings==13.0.1
+cuda-core==0.3.2
+cuda-python==12.9.2
+cuda-bindings==12.9.2
+nvidia-cuda-nvcc-cu12==12.9.86
 plotly==5.24.0
 pre-commit==3.8.0
 pydot==3.0.1
