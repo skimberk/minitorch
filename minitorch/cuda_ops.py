@@ -587,19 +587,32 @@ def _tensor_matrix_multiply(
 
     val = 0
 
-    for m in range(fuse_dim_size // BLOCK_DIM + 1):
-        a_shared[pi][pj] = a_storage[a_pos + pj * a_strides[2]]
-        b_shared[pi][pj] = b_storage[b_pos + pi * b_strides[1]]
+    # for m in range(fuse_dim_size // BLOCK_DIM + 1):
+    #     a_shared[pi][pj] = a_storage[a_pos + pj * a_strides[2]]
+    #     b_shared[pi][pj] = b_storage[b_pos + pi * b_strides[1]]
     
-        cuda.syncthreads()
+    #     cuda.syncthreads()
     
-        for n in range(min(BLOCK_DIM, fuse_dim_size - m * BLOCK_DIM)):
-            val += a_shared[pi][n] * b_shared[n][pj]
+    #     for n in range(min(BLOCK_DIM, fuse_dim_size - m * BLOCK_DIM)):
+    #         val += a_shared[pi][n] * b_shared[n][pj]
     
-        a_pos += BLOCK_DIM * a_strides[2]
-        b_pos += BLOCK_DIM * a_strides[1]
+    #     a_pos += BLOCK_DIM * a_strides[2]
+    #     b_pos += BLOCK_DIM * a_strides[1]
     
-        cuda.syncthreads()
+    #     cuda.syncthreads()
+
+    a_shared[pi][pj] = a_storage[a_pos + pj * a_strides[2]]
+    b_shared[pi][pj] = b_storage[b_pos + pi * b_strides[1]]
+    
+    cuda.syncthreads()
+    
+    for n in range(fuse_dim_size):
+        val += a_shared[pi][n] * b_shared[n][pj]
+    
+    a_pos += BLOCK_DIM * a_strides[2]
+    b_pos += BLOCK_DIM * a_strides[1]
+    
+    cuda.syncthreads()
     
     if out_pos < out_size:
         out[out_pos] = val
