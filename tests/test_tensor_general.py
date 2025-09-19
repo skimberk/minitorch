@@ -218,10 +218,8 @@ if numba.cuda.is_available():
     @pytest.mark.task3_4
     def test_mul_practice3() -> None:
         "Small real example"
-        # x1 = [[random.random() for i in range(2)] for j in range(2)]
-        # y1 = [[random.random() for i in range(2)] for j in range(2)]
-        x1 = [[0, 0, 3, 0], [0, 0, 7, 0], [0, 0, 11, 0], [0, 0, 15, 0]]
-        y1 = [[0, 0, 0], [0, 0, 0], [0.01, 0.1, 1], [0, 0, 0]]
+        x1 = [[random.random() for i in range(2)] for j in range(2)]
+        y1 = [[random.random() for i in range(2)] for j in range(2)]
         z = minitorch.tensor(x1, backend=shared["fast"]) @ minitorch.tensor(
             y1, backend=shared["fast"]
         )
@@ -229,15 +227,6 @@ if numba.cuda.is_available():
         x = minitorch.tensor(x1, backend=shared["cuda"])
         y = minitorch.tensor(y1, backend=shared["cuda"])
         z2 = x @ y
-
-        print("X")
-        print(x)
-        print("Y")
-        print(y)
-        print("Fast (control)")
-        print(z)
-        print("CUDA")
-        print(z2)
 
         for i in range(2):
             for j in range(2):
@@ -307,6 +296,15 @@ if numba.cuda.is_available():
         x = minitorch.tensor(x1, backend=shared["cuda"])
         y = minitorch.tensor(y1, backend=shared["cuda"])
         z2 = x @ y
+
+        print("X")
+        print(x)
+        print("Y")
+        print(y)
+        print("Fast (control)")
+        print(z)
+        print("CUDA")
+        print(z2)
 
         for b in range(2):
             for i in range(size_a):

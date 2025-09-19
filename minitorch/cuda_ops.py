@@ -126,15 +126,6 @@ class CudaOps(TensorOps):
         )
         threadsperblock = (THREADS_PER_BLOCK, THREADS_PER_BLOCK, 1)
 
-        print("blockspergrid", blockspergrid)
-        print("threadsperblock", threadsperblock)
-        print("a")
-        print(a)
-        print("b")
-        print(b)
-        print("out")
-        print(out)
-
         tensor_matrix_multiply[blockspergrid, threadsperblock](
             *out.tuple(), out.size, *a.tuple(), *b.tuple()
         )
@@ -142,9 +133,6 @@ class CudaOps(TensorOps):
         # Undo 3d if we added it.
         if both_2d:
             out = out.view(out.shape[1], out.shape[2])
-        
-        print("out post")
-        print(out)
 
         return out
 
