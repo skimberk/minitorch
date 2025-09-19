@@ -45,7 +45,12 @@ def index_to_position(index: Index, strides: Strides) -> int:
 
     # I originally used np.dot, but I guess this requires np.linalg and that
     # requires scipy when compiling with Numba, so I'm doing it in two steps
-    return np.sum(np.multiply(index, strides))
+    # Later, I was using np.sum and np.prod, but that caused issues with CUDA
+    # So now I'm really roughing it
+    pos = 0
+    for i in range(min(len(index, strides))):
+        pos += index[i] * strides[i]
+    return pos
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
