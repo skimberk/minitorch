@@ -559,8 +559,36 @@ def _tensor_matrix_multiply(
     #    a) Copy into shared memory for a matrix.
     #    b) Copy into shared memory for b matrix
     #    c) Compute the dot produce for position c[i, j]
-    # TODO: Implement for Task 3.4.
-    raise NotImplementedError('Need to implement for Task 3.4')
+
+    fuse_dim_size = a_shape[-1]
+    a_fuse_stride = a_strides[-1]
+    b_fuse_stride = b_strides[-2]
+
+    # It seems like this function is only implemented to work in 3d?
+    # So I think I can take some shortcuts/make some assumptions
+    out_pos = i * out_strides[1] + j * out_strides[2] + batch * out_strides[0]
+
+    # We'll be starting at zero y/x respectively
+    a_pos = i * a_strides[1] + 0 * a_strides[2] + batch * a_strides[0]
+    b_pos = 0 * b_strides[1] + j * b_strides[2] + batch * b_strides[0]
+
+    val = 0
+
+    for m in range(fuse_dim_size // BLOCK_DIM + 1):
+        a_shared[pi][pj] = a_storage[a_pos]
+        b_shared[pi][pj] = b_storage[b_pos]
+    
+        cuda.syncthreads()
+    
+        for n in range(min(BLOCK_DIM, fuse_dim_size - m * BLOCK_DIM)):
+            val += a_shared[pi][n] * b_shared[n][pj]
+    
+        a_pos += BLOCK_DIM * a_strides[2]
+        b_pos += BLOCK_DIM * a_strides[1]
+    
+        cuda.syncthreads()
+    
+    out[out_pos] = val
 
 
 tensor_matrix_multiply = cuda.jit(_tensor_matrix_multiply)
