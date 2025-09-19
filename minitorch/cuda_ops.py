@@ -78,10 +78,19 @@ class CudaOps(TensorOps):
 
         def ret(a: Tensor, dim: int) -> Tensor:
             out_shape = list(a.shape)
+            # Based off this, it seems like we should be parallelizing
+            # over the reduce dimension, and if that dimension has
+            # cardinality > 1024 we will end up with cardinality > 1
+            # in the output
             out_shape[dim] = (a.shape[dim] - 1) // 1024 + 1
             out_a = a.zeros(tuple(out_shape))
 
             threadsperblock = 1024
+            # Ok, so we have a lot of blocks, seemingly one block
+            # per element in the dimensions other than the reduce dimension
+            # So, it seems like each block will be dedicated to one
+            # column over the reduce dimension, with each thread
+            # handling individual values in that column
             blockspergrid = out_a.size
             f[blockspergrid, threadsperblock](  # type: ignore
                 *out_a.tuple(), out_a.size, *a.tuple(), dim, start
@@ -338,35 +347,78 @@ def tensor_reduce(
         cache = cuda.shared.array(BLOCK_DIM, numba.float64)
         out_index = cuda.local.array(MAX_DIMS, numba.int32)
         out_pos = cuda.blockIdx.x
+        out_pos_wrap = out_pos % out_size
+        out_pos_num = out_pos // out_size
         pos = cuda.threadIdx.x
 
         out_reduce_stride = out_strides[reduce_dim]
         a_reduce_stride = a_strides[reduce_dim]
 
-        # Create a numpy array to store out index
-        # important that we initialize it as int64! defaults to float
-        out_index = np.empty(len(out_shape), dtype=np.int64)
+        reduce_size = a_shape[reduce_dim]
+
         # Get index from ordinal
-        to_index(i, out_shape, out_index)
+        to_index(out_pos, out_shape, out_index)
         # Convert index to position in storage (taking into account strides)
         out_position = index_to_position(out_index, out_strides)
 
-        a_index = np.copy(out_index)
-        a_position = index_to_position(a_index, a_strides)
-        reduce_stride = a_strides[reduce_dim]
-        reduced_value = a_storage[a_position]
-        # Iterate through the dimension we're reducing
-        # Think of a three dimensional cube we're reducing along one of its
-        # dimensions
-        # We're essentially taking a 2d slice and reducing down, getting a
-        # reduced rectangle
-        # In this loop, for each index in the resulting rectangle, we iterate
-        # through that third, reduced dimension and do the reduction
-        for j in range(a_shape[reduce_dim] - 1):
-            a_position = a_position + reduce_stride
-            reduced_value = fn(a_storage[a_position], reduced_value)
+        out_index[reduce_dim] *= BLOCK_DIM
+        a_position = index_to_position(out_index, a_strides)
 
-        out[out_position] = reduced_value
+        if pos < reduce_size:
+            cache[pos] = a_storage[a_position + a_reduce_stride * pos]
+        else:
+            cache[pos] = reduce_value
+
+        cuda.syncthreads()
+
+        if pos % 2 == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 1])
+
+        cuda.syncthreads()
+
+        if pos % 4 == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 2])
+
+        cuda.syncthreads()
+
+        if pos % 8 == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 4])
+
+        cuda.syncthreads()
+
+        if pos % 16 == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 8])
+
+        cuda.syncthreads()
+
+        if pos % 32 == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 16])
+
+        cuda.syncthreads()
+
+        if pos % 64 == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 32])
+
+        cuda.syncthreads()
+
+        if pos % 128 == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 64])
+
+        cuda.syncthreads()
+
+        if pos % 256 == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 128])
+
+        cuda.syncthreads()
+
+        if pos % 512 == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 256])
+
+        cuda.syncthreads()
+
+        if pos == 0:
+            cache[pos] = fn(cache[pos], cache[pos + 512])
+            out[out_position] = cache[pos]
 
     return cuda.jit()(_reduce)  # type: ignore
 
