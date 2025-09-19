@@ -220,7 +220,7 @@ if numba.cuda.is_available():
         "Small real example"
         # x1 = [[random.random() for i in range(2)] for j in range(2)]
         # y1 = [[random.random() for i in range(2)] for j in range(2)]
-        x1 = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]
+        x1 = [[0, 0, 3, 0], [0, 0, 7, 0], [0, 0, 11, 0], [0, 0, 15, 0]]
         y1 = [[0, 0, 0], [0, 0, 0], [0.01, 0.1, 1], [0, 0, 0]]
         z = minitorch.tensor(x1, backend=shared["fast"]) @ minitorch.tensor(
             y1, backend=shared["fast"]
