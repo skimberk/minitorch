@@ -601,7 +601,8 @@ def _tensor_matrix_multiply(
     
         cuda.syncthreads()
     
-    out[out_pos] = val
+    if out_pos < out_size:
+        out[out_pos] = val
 
 
 tensor_matrix_multiply = cuda.jit(_tensor_matrix_multiply)
