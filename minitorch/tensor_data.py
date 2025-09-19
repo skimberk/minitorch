@@ -48,7 +48,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
     # Later, I was using np.sum and np.prod, but that caused issues with CUDA
     # So now I'm really roughing it
     pos = 0
-    for i in range(min(len(index, strides))):
+    for i in range(min(len(index), len(strides))):
         pos += index[i] * strides[i]
     return pos
 
