@@ -454,9 +454,10 @@ def _mm_practice(out: Storage, a: Storage, b: Storage, size: int) -> None:
         size (int): size of the square
     """
     BLOCK_DIM = 32
+    CACHE_SIZE = 1024 # 32 * 32
 
-    cache_a = cuda.shared.array(BLOCK_DIM * BLOCK_DIM, numba.float64)
-    cache_b = cuda.shared.array(BLOCK_DIM * BLOCK_DIM, numba.float64)
+    cache_a = cuda.shared.array(CACHE_SIZE, numba.float64)
+    cache_b = cuda.shared.array(CACHE_SIZE, numba.float64)
 
     x_stride = size
     y_stride = 1
