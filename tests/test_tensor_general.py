@@ -218,8 +218,10 @@ if numba.cuda.is_available():
     @pytest.mark.task3_4
     def test_mul_practice3() -> None:
         "Small real example"
-        x1 = [[random.random() for i in range(2)] for j in range(2)]
-        y1 = [[random.random() for i in range(2)] for j in range(2)]
+        # x1 = [[random.random() for i in range(2)] for j in range(2)]
+        # y1 = [[random.random() for i in range(2)] for j in range(2)]
+        x1 = [[1, 2, 3], [1, 2, 3], [1, 2, 3]]
+        y1 = [[1, 2, 3], [1, 2, 3], [1, 2, 3]]
         z = minitorch.tensor(x1, backend=shared["fast"]) @ minitorch.tensor(
             y1, backend=shared["fast"]
         )
