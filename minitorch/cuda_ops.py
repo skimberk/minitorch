@@ -594,7 +594,8 @@ def _tensor_matrix_multiply(
         cuda.syncthreads()
     
         for n in range(min(BLOCK_DIM, fuse_dim_size - m * BLOCK_DIM)):
-            val += a_shared[pi][n] * b_shared[n][pj]
+            # val += a_shared[pi][n] * b_shared[n][pj]
+            val += 0.1
     
         a_pos += BLOCK_DIM * a_strides[2]
         b_pos += BLOCK_DIM * a_strides[1]
