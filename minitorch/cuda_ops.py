@@ -454,8 +454,42 @@ def _mm_practice(out: Storage, a: Storage, b: Storage, size: int) -> None:
         size (int): size of the square
     """
     BLOCK_DIM = 32
-    # TODO: Implement for Task 3.3.
-    raise NotImplementedError('Need to implement for Task 3.3')
+
+    cache_a = cuda.shared.array(BLOCK_DIM * BLOCK_DIM, numba.float64)
+    cache_b = cuda.shared.array(BLOCK_DIM * BLOCK_DIM, numba.float64)
+
+    x_stride = size
+    y_stride = 1
+
+    # Get our x,y thread position in the matrix
+    x, y = cuda.grid(2)
+    # Strides are [size, 1], so we calculate our index in the storage
+    out_idx = x * x_stride + y * y_stride
+
+    # Shouldn't be too bad, the matrix is square and < 32 elements wide
+    if x < size and y < size:
+        # Move both matrices into shared memory
+        cache_a[out_idx] = a[out_idx]
+        cache_b[out_idx] = b[out_idx]
+    
+    cuda.syncthreads()
+
+    if x < size and y < size:
+        # Starting indices
+        a_idx = x * x_stride + 0 * y_stride
+        b_idx = 0 * x_stride + y * y_stride
+
+        val = 0
+
+        for n in range(size):
+            val += a[a_idx] * b[b_idx]
+
+            # Move to next index!
+            a_idx += y_stride
+            b_idx += x_stride
+        
+        out[out_idx] = val
+
 
 
 jit_mm_practice = cuda.jit()(_mm_practice)
