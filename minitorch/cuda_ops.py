@@ -279,28 +279,17 @@ def _sum_practice(out: Storage, a: Storage, size: int) -> None:
     
     cuda.syncthreads()
 
-    if pos % 2 == 0:
-        cache[pos] += cache[pos + 1]
+    offset = 1
+    # Iterate until we've combined all values in the block
+    while offset <= BLOCK_DIM / 2:
+        double_offset = 2 * offset
+        if pos % double_offset == 0:
+            cache[pos] = cache[pos + offset]
+        offset = double_offset
 
-    cuda.syncthreads()
-
-    if pos % 4 == 0:
-        cache[pos] += cache[pos + 2]
-    
-    cuda.syncthreads()
-
-    if pos % 8 == 0:
-        cache[pos] += cache[pos + 4]
-    
-    cuda.syncthreads()
-
-    if pos % 16 == 0:
-        cache[pos] += cache[pos + 8]
-    
-    cuda.syncthreads()
+        cuda.syncthreads()
 
     if pos == 0:
-        cache[pos] += cache[pos + 16]
         out[cuda.blockIdx.x] = cache[pos]
 
 
@@ -372,53 +361,17 @@ def tensor_reduce(
 
         cuda.syncthreads()
 
-        if pos % 2 == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 1])
+        offset = 1
+        # Iterate until we've combined all values in the block
+        while offset <= BLOCK_DIM / 2:
+            double_offset = 2 * offset
+            if pos % double_offset == 0:
+                cache[pos] = fn(cache[pos], cache[pos + offset])
+            offset = double_offset
 
-        cuda.syncthreads()
-
-        if pos % 4 == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 2])
-
-        cuda.syncthreads()
-
-        if pos % 8 == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 4])
-
-        cuda.syncthreads()
-
-        if pos % 16 == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 8])
-
-        cuda.syncthreads()
-
-        if pos % 32 == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 16])
-
-        cuda.syncthreads()
-
-        if pos % 64 == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 32])
-
-        cuda.syncthreads()
-
-        if pos % 128 == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 64])
-
-        cuda.syncthreads()
-
-        if pos % 256 == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 128])
-
-        cuda.syncthreads()
-
-        if pos % 512 == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 256])
-
-        cuda.syncthreads()
+            cuda.syncthreads()
 
         if pos == 0:
-            cache[pos] = fn(cache[pos], cache[pos + 512])
             out[out_position] = cache[pos]
 
     return cuda.jit()(_reduce)  # type: ignore
