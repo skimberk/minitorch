@@ -529,12 +529,19 @@ def _tensor_matrix_multiply(
     val = 0
 
     for m in range(fuse_dim_size // BLOCK_DIM + 1):
-        a_shared[pi][pj] = a_storage[a_pos + pj * a_strides[2]]
-        b_shared[pi][pj] = b_storage[b_pos + pi * b_strides[1]]
+        a_shared[pi][pj] = 0
+        b_shared[pi][pj] = 0
+
+        if i < a_shape[1] and (m * BLOCK_DIM + pj) < a_shape[2]:
+            a_shared[pi][pj] = a_storage[a_pos + pj * a_strides[2]]
+        if (m * BLOCK_DIM + pi) < b_shape[1] and j < b_shape[2]:
+            b_shared[pi][pj] = b_storage[b_pos + pi * b_strides[1]]
     
         cuda.syncthreads()
     
-        for n in range(min(BLOCK_DIM, fuse_dim_size - m * BLOCK_DIM)):
+        # Don't need to worry about bounds checking because everything
+        # out of bounds has been set to zero so its a noop
+        for n in BLOCK_DIM:
             val += a_shared[pi][n] * b_shared[n][pj]
     
         a_pos += BLOCK_DIM * a_strides[2]
