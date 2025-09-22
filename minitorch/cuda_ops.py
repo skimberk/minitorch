@@ -522,9 +522,13 @@ def _tensor_matrix_multiply(
     # So I think I can take some shortcuts/make some assumptions
     out_pos = i * out_strides[1] + j * out_strides[2] + batch * out_strides[0]
 
-    # We'll be starting at zero y/x respectively
-    a_pos = i * a_strides[1] + 0 * a_strides[2] + batch * a_strides[0]
-    b_pos = 0 * b_strides[1] + j * b_strides[2] + batch * b_strides[0]
+    a_x = i
+    a_y = 0
+    a_z = batch
+
+    b_x = 0
+    b_y = j
+    b_z = batch
 
     val = 0
 
@@ -532,10 +536,13 @@ def _tensor_matrix_multiply(
         a_shared[pi][pj] = 0
         b_shared[pi][pj] = 0
 
-        if i < a_shape[1] and (m * BLOCK_DIM + pj) < a_shape[2]:
-            a_shared[pi][pj] = a_storage[a_pos + pj * a_strides[2]]
-        if (m * BLOCK_DIM + pi) < b_shape[1] and j < b_shape[2]:
-            b_shared[pi][pj] = b_storage[b_pos + pi * b_strides[1]]
+        curr_a_y = a_y + pj
+        curr_b_x = b_x + pi
+
+        if a_x < a_shape[1] and curr_a_y < a_shape[2]:
+            a_shared[pi][pj] = a_storage[a_x * a_strides[1] + curr_a_y * a_strides[2] + a_z * a_strides[0]]
+        if curr_b_x < b_shape[1] and j < b_shape[2]:
+            b_shared[pi][pj] = b_storage[curr_b_x * b_strides[1] + b_y * b_strides[2] + b_z * b_strides[0]]
     
         cuda.syncthreads()
     
@@ -544,8 +551,8 @@ def _tensor_matrix_multiply(
         for n in range(BLOCK_DIM):
             val += a_shared[pi][n] * b_shared[n][pj]
     
-        a_pos += BLOCK_DIM * a_strides[2]
-        b_pos += BLOCK_DIM * b_strides[1]
+        a_y += BLOCK_DIM
+        b_x += BLOCK_DIM
     
         cuda.syncthreads()
     

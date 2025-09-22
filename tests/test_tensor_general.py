@@ -349,15 +349,6 @@ if numba.cuda.is_available():
         y = minitorch.tensor(y1, backend=shared["cuda"])
         z2 = x @ y
 
-        print("X")
-        print(x)
-        print("Y")
-        print(y)
-        print("Fast (control)")
-        print(z)
-        print("CUDA")
-        print(z2)
-
         for b in range(2):
             for i in range(size_a):
                 for j in range(size_b):
