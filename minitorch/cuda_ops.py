@@ -539,6 +539,24 @@ def _tensor_matrix_multiply(
         curr_a_y = a_y + pj
         curr_b_x = b_x + pi
 
+        # Deal with broadcasting
+        # For a
+        if a_shape[1] == 1:
+            a_x = 0
+        if a_shape[2] == 1:
+            a_y = 0
+            curr_a_y = 0
+        if a_shape[0] == 1:
+            a_z = 0
+        # For b
+        if b_shape[1] == 1:
+            b_x = 0
+            curr_b_x = 0
+        if b_shape[2] == 1:
+            b_y = 0
+        if b_shape[2] == 1:
+            b_z = 0
+
         if a_x < a_shape[1] and curr_a_y < a_shape[2]:
             a_shared[pi][pj] = a_storage[a_x * a_strides[1] + curr_a_y * a_strides[2] + a_z * a_strides[0]]
         if curr_b_x < b_shape[1] and j < b_shape[2]:
