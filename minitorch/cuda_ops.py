@@ -541,7 +541,7 @@ def _tensor_matrix_multiply(
     
         # Don't need to worry about bounds checking because everything
         # out of bounds has been set to zero so its a noop
-        for n in BLOCK_DIM:
+        for n in range(BLOCK_DIM):
             val += a_shared[pi][n] * b_shared[n][pj]
     
         a_pos += BLOCK_DIM * a_strides[2]
