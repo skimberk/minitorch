@@ -233,11 +233,63 @@ if numba.cuda.is_available():
                 assert_close(z[i, j], z2[i, j])
 
     @pytest.mark.task3_4
+    def test_mul_practice3a() -> None:
+        "Small real example"
+        x1 = [[random.random() for i in range(7)] for j in range(3)]
+        y1 = [[random.random() for i in range(5)] for j in range(7)]
+        z = minitorch.tensor(x1, backend=shared["fast"]) @ minitorch.tensor(
+            y1, backend=shared["fast"]
+        )
+
+        x = minitorch.tensor(x1, backend=shared["cuda"])
+        y = minitorch.tensor(y1, backend=shared["cuda"])
+        z2 = x @ y
+
+        for i in range(2):
+            for j in range(2):
+                assert_close(z[i, j], z2[i, j])
+    
+    @pytest.mark.task3_4
+    def test_mul_practice3b() -> None:
+        "Small real example"
+        x1 = [[random.random() for i in range(13)] for j in range(11)]
+        y1 = [[random.random() for i in range(2)] for j in range(13)]
+        z = minitorch.tensor(x1, backend=shared["fast"]) @ minitorch.tensor(
+            y1, backend=shared["fast"]
+        )
+
+        x = minitorch.tensor(x1, backend=shared["cuda"])
+        y = minitorch.tensor(y1, backend=shared["cuda"])
+        z2 = x @ y
+
+        for i in range(2):
+            for j in range(2):
+                assert_close(z[i, j], z2[i, j])
+
+    @pytest.mark.task3_4
     def test_mul_practice4() -> None:
         "Extend to require 2 blocks"
         size = 33
         x1 = [[random.random() for i in range(size)] for j in range(size)]
         y1 = [[random.random() for i in range(size)] for j in range(size)]
+        z = minitorch.tensor(x1, backend=shared["fast"]) @ minitorch.tensor(
+            y1, backend=shared["fast"]
+        )
+
+        x = minitorch.tensor(x1, backend=shared["cuda"])
+        y = minitorch.tensor(y1, backend=shared["cuda"])
+        z2 = x @ y
+
+        for i in range(size):
+            for j in range(size):
+                assert_close(z[i, j], z2[i, j])
+
+    @pytest.mark.task3_4
+    def test_mul_practice4a() -> None:
+        "Extend to require 2 blocks"
+        size = 33
+        x1 = [[random.random() for i in range(47)] for j in range(35)]
+        y1 = [[random.random() for i in range(33)] for j in range(47)]
         z = minitorch.tensor(x1, backend=shared["fast"]) @ minitorch.tensor(
             y1, backend=shared["fast"]
         )

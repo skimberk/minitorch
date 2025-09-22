@@ -284,7 +284,7 @@ def _sum_practice(out: Storage, a: Storage, size: int) -> None:
     while offset <= BLOCK_DIM / 2:
         double_offset = 2 * offset
         if pos % double_offset == 0:
-            cache[pos] = cache[pos + offset]
+            cache[pos] += cache[pos + offset]
         offset = double_offset
 
         cuda.syncthreads()
