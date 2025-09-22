@@ -554,12 +554,12 @@ def _tensor_matrix_multiply(
             curr_b_x = 0
         if b_shape[2] == 1:
             b_y = 0
-        if b_shape[2] == 1:
+        if b_shape[0] == 1:
             b_z = 0
 
-        if a_x < a_shape[1] and curr_a_y < a_shape[2]:
+        if a_x < a_shape[1] and curr_a_y < a_shape[2] and a_z < a_shape[0]:
             a_shared[pi][pj] = a_storage[a_x * a_strides[1] + curr_a_y * a_strides[2] + a_z * a_strides[0]]
-        if curr_b_x < b_shape[1] and j < b_shape[2]:
+        if curr_b_x < b_shape[1] and j < b_shape[2] and b_z < b_shape[0]:
             b_shared[pi][pj] = b_storage[curr_b_x * b_strides[1] + b_y * b_strides[2] + b_z * b_strides[0]]
     
         cuda.syncthreads()
