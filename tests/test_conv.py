@@ -23,7 +23,6 @@ def test_conv1d_simple() -> None:
 @pytest.mark.task4_1
 @given(tensors(shape=(1, 1, 6)), tensors(shape=(1, 1, 4)))
 def test_conv1d(input: Tensor, weight: Tensor) -> None:
-    print(input, weight)
     minitorch.grad_check(minitorch.Conv1dFun.apply, input, weight)
 
 
@@ -33,6 +32,13 @@ def test_conv1d(input: Tensor, weight: Tensor) -> None:
 def test_conv1d_channel(input: Tensor, weight: Tensor) -> None:
     minitorch.grad_check(minitorch.Conv1dFun.apply, input, weight)
 
+@pytest.mark.task4_2
+def test_conv2d_simple() -> None:
+    t = minitorch.tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]).view(1, 1, 4, 3)
+    t2 = minitorch.tensor([[1, 2, 1, 2]]).view(1, 1, 2, 2)
+    out = minitorch.tensor([1, 1, 1, 1]).view(1, 1, 2, 2)
+    
+    minitorch.tensor_conv2d(*out.tuple(), out.size, *t.tuple(), *t2.tuple(), True)
 
 @pytest.mark.task4_2
 @given(tensors(shape=(1, 1, 6, 6)), tensors(shape=(1, 1, 2, 4)))

@@ -207,7 +207,7 @@ def _tensor_conv2d(
         weight_strides (Strides): strides for `input` tensor.
         reverse (bool): anchor weight at top-left or bottom-right
     """
-    batch_, out_channels, _, _ = out_shape
+    batch_, out_channels, out_height, out_width = out_shape
     batch, in_channels, height, width = input_shape
     out_channels_, in_channels_, kh, kw = weight_shape
 
@@ -223,8 +223,32 @@ def _tensor_conv2d(
     s10, s11, s12, s13 = s1[0], s1[1], s1[2], s1[3]
     s20, s21, s22, s23 = s2[0], s2[1], s2[2], s2[3]
 
-    # TODO: Implement for Task 4.2.
-    raise NotImplementedError('Need to implement for Task 4.2')
+    for batch_index in range(batch):
+        for out_intermediate_index in prange(out_channels * out_height * out_width):
+            out_channel_index = out_intermediate_index // (out_height * out_width)
+            out_x = out_intermediate_index % out_width
+            out_y = (out_intermediate_index // out_width) % out_height
+
+            val = 0
+            for in_channel_index in range(in_channels):
+                for weight_y in range(kh):
+                    for weight_x in range(kw):
+                        in_x = 0
+                        in_y = 0
+                        if reverse:
+                            in_x = out_x - weight_x
+                            in_y = out_y - weight_y
+                        else:
+                            in_x = out_x + weight_x
+                            in_y = out_y + weight_y
+
+                        if in_x >= 0 and in_x < width and in_y >= 0 and in_y < height:
+                            in_pos = input_strides[0] * batch_index + input_strides[1] * in_channel_index + input_strides[2] * in_y + input_strides[3] * in_x
+                            weight_pos = weight_strides[0] * out_channel_index + weight_strides[1] * in_channel_index + weight_strides[2] * weight_y + weight_strides[3] * weight_x
+                            val += input[in_pos] * weight[weight_pos]
+            
+            out_pos = out_strides[0] * batch_index + out_strides[1] * out_channel_index + out_strides[2] * out_y + out_strides[3] * out_x
+            out[out_pos] = val
 
 
 tensor_conv2d = njit(parallel=True, fastmath=True)(_tensor_conv2d)
