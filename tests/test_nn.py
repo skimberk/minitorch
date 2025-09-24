@@ -7,6 +7,28 @@ from minitorch import Tensor
 from .strategies import assert_close
 from .tensor_strategies import tensors
 
+@pytest.mark.task4_3
+# @given(tensors(shape=(1, 1, 4, 4)))
+# def test_tile(t: Tensor) -> None:
+def test_tile() -> None:
+    for i in range(100):
+        t = minitorch.tensor(list(range(16))).view(1, 1, 4, 4)
+        out = minitorch.tile(t, (2, 2))
+    print("t", t)
+    print("out", out)
+    print("shape", out[0]._tensor.strides)
+
+@pytest.mark.task4_3
+# @given(tensors(shape=(1, 1, 4, 4)))
+# def test_tile(t: Tensor) -> None:
+def test_avg_simple() -> None:
+    for i in range(100):
+        t = minitorch.tensor(list(range(16))).view(1, 1, 4, 4)
+        out = minitorch.avgpool2d(t, (2, 2))
+    print("t", t)
+    print("out", out)
+    print("shape", out._tensor.strides)
+
 
 @pytest.mark.task4_3
 @given(tensors(shape=(1, 1, 4, 4)))
