@@ -82,14 +82,15 @@ class Max(Function):
     @staticmethod
     def forward(ctx: Context, input: Tensor, dim: Tensor) -> Tensor:
         "Forward of max should be max reduction"
-        # TODO: Implement for Task 4.4.
-        raise NotImplementedError('Need to implement for Task 4.4')
+        dim_int = int(dim.item())
+        ctx.save_for_backward(dim_int)
+        return max_reduce(input, dim_int)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         "Backward of max should be argmax (see above)"
-        # TODO: Implement for Task 4.4.
-        raise NotImplementedError('Need to implement for Task 4.4')
+        dim, = ctx.saved_values
+        return argmax(grad_output, dim), 0.0
 
 
 def max(input: Tensor, dim: int) -> Tensor:
@@ -111,8 +112,13 @@ def softmax(input: Tensor, dim: int) -> Tensor:
     Returns:
         softmax tensor
     """
-    # TODO: Implement for Task 4.4.
-    raise NotImplementedError('Need to implement for Task 4.4')
+    
+    # Exponentiate
+    input_exp = input.exp()
+    # Sum e^x over our target dimension
+    summed = input_exp.sum(dim)
+    # Broadcasting will take care of everything else!
+    return input_exp / summed
 
 
 def logsoftmax(input: Tensor, dim: int) -> Tensor:
@@ -130,8 +136,23 @@ def logsoftmax(input: Tensor, dim: int) -> Tensor:
     Returns:
          log of softmax tensor
     """
-    # TODO: Implement for Task 4.4.
-    raise NotImplementedError('Need to implement for Task 4.4')
+    # max_t = Max.apply(input, input._ensure_tensor(dim))
+
+    # This wasn't working for some reason?
+    # # Intermediate calculation of the sum of logs
+    # inter_t = input - max_t
+    # inter_t = inter_t.exp()
+    # inter_t = inter_t.sum(dim)
+    # inter_t = inter_t.log()
+
+    # return input - inter_t - max_t
+
+    # Intermediate calculation of the sum of logs
+    inter_t = input.exp()
+    inter_t = inter_t.sum(dim)
+    inter_t = inter_t.log()
+
+    return input - inter_t
 
 
 def maxpool2d(input: Tensor, kernel: Tuple[int, int]) -> Tensor:
@@ -146,8 +167,13 @@ def maxpool2d(input: Tensor, kernel: Tuple[int, int]) -> Tensor:
         Tensor : pooled tensor
     """
     batch, channel, height, width = input.shape
-    # TODO: Implement for Task 4.4.
-    raise NotImplementedError('Need to implement for Task 4.4')
+    
+    tiled, new_height, new_width = tile(input, kernel)
+    maxed = max(tiled, 4)
+    # Remove last dimension (has size 1)
+    maxed = maxed.view(batch, channel, new_height, new_width)
+
+    return maxed
 
 
 def dropout(input: Tensor, rate: float, ignore: bool = False) -> Tensor:
@@ -162,5 +188,10 @@ def dropout(input: Tensor, rate: float, ignore: bool = False) -> Tensor:
     Returns:
         tensor with random positions dropped out
     """
-    # TODO: Implement for Task 4.4.
-    raise NotImplementedError('Need to implement for Task 4.4')
+    if ignore:
+        return input
+    
+    random_t = rand(input.shape, backend=input.backend)
+    keep_t = random_t > rate
+    return input * keep_t
+

@@ -53,8 +53,20 @@ def test_avg(t: Tensor) -> None:
 @pytest.mark.task4_4
 @given(tensors(shape=(2, 3, 4)))
 def test_max(t: Tensor) -> None:
-    # TODO: Implement for Task 4.4.
-    raise NotImplementedError('Need to implement for Task 4.4')
+    out = minitorch.max(t, 0)
+    for i in range(3):
+        for j in range(4):
+            assert_close(out[0, i, j], max(t[0, i, j], t[1, i, j]))
+    
+    out = minitorch.max(t, 1)
+    for i in range(2):
+        for j in range(4):
+            assert_close(out[i, 0, j], max(t[i, 0, j], t[i, 1, j], t[i, 2, j]))
+    
+    out = minitorch.max(t, 2)
+    for i in range(2):
+        for j in range(3):
+            assert_close(out[i, j, 0], max(t[i, j, 0], t[i, j, 1], t[i, j, 2], t[i, j, 3]))
 
 
 @pytest.mark.task4_4
